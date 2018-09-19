@@ -1,24 +1,19 @@
+import os 
 
-
-
-temsim_dir   = '/Users/sukhyun/Documents/temsim/'
-project_dir  = '/Users/sukhyun/Documents/TaS2_PLD/'
-xyz_dir      = '/Users/sukhyun/Documents/xyz/'
-
-fname_base = 'TaS2_PLD'
-
-
-
-
-def runSAED(fname_base,xyz_dir):
+def runSAED(fname_base,temsim_dir,project_dir,xyz_dir):
     #Run Autusolice
-    aslic_params = project_dir + 'aslic_params/aslic_params_' + fname_base
-    image_params = project_dir + 'image_params/image_params_' + fname_base
-    aslic_output = project_dir + 'aslic_output/aslic_out_' + fname_base + '.tif'
-    image_output = project_dir + 'image_output/image_out_' + fname_base + '.tif'
-    autoslice = './autoslic'
-    image =     './image'
+    file_dir = project_dir + fname_base + '/'
+    aslic_params = file_dir + 'aslic_params_' + fname_base
+    image_params = file_dir + 'image_params_' + fname_base
+    aslic_output = file_dir + 'aslic_out_' + fname_base + '.tif'
+    image_output = file_dir + 'image_out_' + fname_base + '.tif'
+    autoslice = temsim_dir + './autoslic'
+    image =     temsim_dir + './image'
 
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+    if not os.path.exists(file_dir):
+        os.makedirs(file_dir)
 
 
     #Parameter for autoslic
@@ -90,3 +85,11 @@ def runSAED(fname_base,xyz_dir):
     #Run Image
     print('Running Image')
     os.system(image  +  ' < ' + image_params + ' > '+ image_output+'.out' )
+
+
+temsim_dir   = '/Users/sukhyun/Documents/temsim/'
+project_dir  = '/Users/sukhyun/Documents/TaS2_PLD/'
+xyz_dir      = '/Users/sukhyun/Documents/xyz/'
+fname_base   = 'TaS2_PLD_A1_0.00_A2_0.00'
+
+runSAED(fname_base,temsim_dir,project_dir,xyz_dir)
