@@ -1,8 +1,15 @@
 import os 
 
-def runSAED(fname_base,temsim_dir,project_dir,xyz_dir):
-    #Run Autusolice
-    file_dir = project_dir + fname_base + '/'
+def runSAED(settings):
+
+
+    temsim_dir   = settings['temsim_dir']
+    project_dir  = settings['project_dir']
+    xyz_dir      = settings['xyz_dir']
+    fname_base   = settings['fname_base']
+
+
+    file_dir = project_dir + fname_base + '/SAED/'
     aslic_params = file_dir + 'aslic_params_' + fname_base
     image_params = file_dir + 'image_params_' + fname_base
     aslic_output = file_dir + 'aslic_out_' + fname_base + '.tif'
@@ -10,17 +17,14 @@ def runSAED(fname_base,temsim_dir,project_dir,xyz_dir):
     autoslice = temsim_dir + './autoslic'
     image =     temsim_dir + './image'
 
-    if not os.path.exists(project_dir):
-        os.makedirs(project_dir)
-    if not os.path.exists(file_dir):
-        os.makedirs(file_dir)
-
+    makePath(project_dir)
+    makePath(file_dir)
 
     #Parameter for autoslic
     # Name of file with input atomic coord. in x,y,z format:
     xyz = xyz_dir + fname_base + '.xyz'
     #Replicate unit cell by NCELLX,NCELLY,NCELLZ :
-    rep = '1 1 1'
+    rep = settings['rep']
     #Name of file to get binary aslic_output of multislice result:
     binary_aslic_output = aslic_output
     #Do you want to include partial coherence (y/n) ?
@@ -32,7 +36,7 @@ def runSAED(fname_base,temsim_dir,project_dir,xyz_dir):
     #Do you want to start from previous result? (y/n);
     prev = 'n'
     #Incident beam energy in kev:
-    incident_beam_e = '300'
+    incident_beam_e = settings['voltage']
     #Wavefunction size in pixels, Nx,Ny:
     wavefn_size = '2048 2048'
     #Crystal tilt x,y in mrad.:
@@ -44,9 +48,9 @@ def runSAED(fname_base,temsim_dir,project_dir,xyz_dir):
     #Do you want to include thermal vibrations (y/n) :
     include_thermal = 'n'
     #Type the temperature in degrees K:
-    temp = '300'
+    temp = settings['temp']
     #Type number of configurations to average over:
-    num_config = '30'
+    num_config = settings['num_config']
     #DO you want to aslic_output intensity vs. depth cross section (y/n)
     depth_cros = 'n'
 
@@ -86,10 +90,20 @@ def runSAED(fname_base,temsim_dir,project_dir,xyz_dir):
     print('Running Image')
     os.system(image  +  ' < ' + image_params + ' > '+ image_output+'.out' )
 
+def makePath(directory) :
+    if not os.path.exists(directory) :
+        os.makedirs(directory)
 
-temsim_dir   = '/Users/sukhyun/Documents/temsim/'
-project_dir  = '/Users/sukhyun/Documents/TaS2_PLD/'
-xyz_dir      = '/Users/sukhyun/Documents/xyz/'
-fname_base   = 'TaS2_PLD_A1_0.00_A2_0.00'
 
-runSAED(fname_base,temsim_dir,project_dir,xyz_dir)
+settings = {
+    'voltage'       : '300',    #keV
+    'temp'          : '300', #Kelvin
+    'num_config'    : '10',  #Number of Configurations to average over
+    'rep'           : '1 1 1', # Unit Cell replication
+    'temsim_dir'    : '/Users/sukhyun/Documents/temsim/',
+    'project_dir'   : '/Users/sukhyun/Documents/TaS2_PLD/',
+    'xyz_dir'       : '/Users/sukhyun/Documents/xyz/',
+    'fname_base'    : 'TaS2_PLD_A1_0.00_A2_0.00'
+}
+
+runSAED(settings)
