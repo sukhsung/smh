@@ -1,8 +1,71 @@
 import os 
 
+def runHAADF(settings):
+    temsim_dir   = settings['temsim_dir']
+    project_dir  = settings['project_dir']
+    xyz_dir      = settings['xyz_dir']
+    fname_base   = settings['fname_base']
+
+
+    file_dir = project_dir + fname_base + '/HAADF/'
+    astem_params = file_dir + 'astem_params_' + fname_base
+    astem_output = file_dir + 'astem_out_' + fname_base + '.tif'
+    autostem     = temsim_dir + './autostem'
+
+    makePath(project_dir)
+    makePath(file_dir)
+
+    #Parameter for autoslic
+    # Name of file with input atomic coord. in x,y,z format:
+    astem_xyz = xyz_dir + fname_base + '.xyz'
+    #Replicate unit cell by NCELLX,NCELLY,NCELLZ :
+    astem_replicate = settings['rep']
+    #STEM probe parameters, V0(kv), Cs3(mm), Cs5(mm), df(Angstroms), apert1,2(mrad):
+    astem_parameters = settings['voltage'] + ' 0 0 0 0 ' + settings['convergence']
+    #type higher order aber. name (as C32a, etc.) followed by a value in mm. (END to end)
+    astem_abers = 'END'
+    #Do you want to add random pi/4 tunning erros for orders 2 to 5 (y/n)
+    astem_random_aber = 'n'
+    #Size of specimen transmission function Nx,Ny in pixels :
+    astem_specpix = '256 256'
+    #Size of probe wave function Nx,Ny in pixels :
+    astem_wavepix = '256 256'
+    #Crystal tilt x,y in mrad.:
+    astem_crystaltilt = '0 0'
+    #Do you want to calculate a 1D line scan (y/n) :
+    astem_1d = 'n'
+    #Number of thickness levels to save, including the end(>=1):
+    astem_numthicks = '1'
+    #File name prefix to get output of STEM multislice result (no extension):
+    astem_stemfname = file_dir + 'HAADF_' + fname_base
+    #Number of detector geometries (>=1):
+    astem_numdet = '1'
+    #Detector 1, type: min max angles(mrad) or radius(Ang.) followed by m or A
+    astem_detang0 = settings['ADF_in_out'] + ' m'
+    #xi,xf,yi,yf, nxout,nyout :
+    astem_scan =  '0 12.547318  0 21.732593 64 64'  # in [Ang, Ang, Ang, Ang, px, px] 
+    #Slice thickness (in Angstroms):
+    astem_slice = '2'
+    #Do you want to include thermal vibrations (y/n) :
+    astem_phonon = 'y'
+    #Type the temperature in degrees K:
+    astem_temp = settings['temp']
+    #Type number of configurations to average over:
+    astem_phonconfs = settings['num_config']
+    #Type source size (FWHM in Ang.):
+    astem_source = '0.5'
+
+
+    f = open(astem_params, 'w')
+    f.write(astem_xyz + "\n" + astem_replicate + "\n" + astem_parameters + "\n" + astem_abers + "\n" + astem_random_aber +"\n" + astem_specpix + "\n" + astem_wavepix + "\n" + astem_crystaltilt + "\n" + astem_1d + "\n" + astem_numthicks + "\n"+ astem_stemfname + "\n" + astem_numdet + "\n" + astem_detang0+ "\n" + astem_scan + "\n" + astem_slice + "\n" + astem_phonon + "\n" + astem_temp + "\n" + astem_phonconfs + "\n" + astem_source)
+    f.close()
+
+
+    print('========== Running AUTOSTEM Simulation ==========')
+
+    os.system(autostem + ' ' + fname_base +  ' < ' + astem_params + ' > '+ astem_params+'.out' )
+
 def runSAED(settings):
-
-
     temsim_dir   = settings['temsim_dir']
     project_dir  = settings['project_dir']
     xyz_dir      = settings['xyz_dir']
@@ -84,26 +147,36 @@ def runSAED(settings):
 
 
     #Run Autoslice
-    print('Running Autoslice')
+    print('========== Running Autoslice Simulation ==========')
     os.system(autoslice  +  ' < ' + aslic_params + ' > '+ aslic_output+'.out' )
     #Run Image
-    print('Running Image')
+    print('========== Running Image Simulation ==========')
     os.system(image  +  ' < ' + image_params + ' > '+ image_output+'.out' )
 
 def makePath(directory) :
     if not os.path.exists(directory) :
         os.makedirs(directory)
 
+def run(settings) :
+    mode = settings['mode']
+    if mode == 'SAED' :
+        runSAED(settings)
+    elif mode == 'HAADF' :
+        runHAADF(settings)
+
 
 settings = {
-    'voltage'       : '300',    #keV
-    'temp'          : '300', #Kelvin
-    'num_config'    : '10',  #Number of Configurations to average over
+    'mode'          : 'HAADF', #SAED, HAADF
+    'voltage'       : '100',    #keV
+    'temp'          : '0', #Kelvin
+    'num_config'    : '1',  #Number of Configurations to average over
     'rep'           : '1 1 1', # Unit Cell replication
+    'convergence'   : '20',   #mrad
+    'ADF_in_out'    : '60 200', # HAADF Detector angle in mrad
     'temsim_dir'    : '/Users/sukhyun/Documents/temsim/',
     'project_dir'   : '/Users/sukhyun/Documents/TaS2_PLD/',
     'xyz_dir'       : '/Users/sukhyun/Documents/xyz/',
-    'fname_base'    : 'TaS2_PLD_A1_0.00_A2_0.00'
+    'fname_base'    : 'TaS2_PLD_SuperCell_A1_0.00_A2_0.00'
 }
 
-runSAED(settings)
+run(settings)
