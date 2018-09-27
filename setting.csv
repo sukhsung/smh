@@ -1,0 +1,2 @@
+Mode,Voltage (in keV),Temperature (in K),# of Phonon Configuration,Unit Cell Repetition (nx),Unit Cell Repetition (ny),Unit Cell Repetition (nz),Convergence Angle (in mrad),ADF Inner Angle (in mrad),ADF Outer Angle (in mrad),STEM Scan xi (Ang),STEM Scan xf (Ang),STEM Scan yi (Ang),STEM Scan yf (Ang),STEM Scan Nx (px),Stem Scan Ny (px)
+HAADF,100,0,1,1,1,1,20,60,200,0,12.547318,0,21.732593,64,110

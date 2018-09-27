@@ -1,15 +1,16 @@
 import os 
+import csv
 
 def runHAADF(settings):
     temsim_dir   = settings['temsim_dir']
     project_dir  = settings['project_dir']
     xyz_dir      = settings['xyz_dir']
-    fname_base   = settings['fname_base']
+    xyz_fname   = settings['xyz_fname']
 
 
-    file_dir = project_dir + fname_base + '/HAADF/'
-    astem_params = file_dir + 'astem_params_' + fname_base
-    astem_output = file_dir + 'astem_out_' + fname_base + '.tif'
+    file_dir = project_dir + xyz_fname + '/HAADF/'
+    astem_params = file_dir + 'astem_params_' + xyz_fname
+    astem_output = file_dir + 'astem_out_' + xyz_fname + '.tif'
     autostem     = temsim_dir + './autostem'
 
     makePath(project_dir)
@@ -17,7 +18,7 @@ def runHAADF(settings):
 
     #Parameter for autoslic
     # Name of file with input atomic coord. in x,y,z format:
-    astem_xyz = xyz_dir + fname_base + '.xyz'
+    astem_xyz = xyz_dir + xyz_fname + '.xyz'
     #Replicate unit cell by NCELLX,NCELLY,NCELLZ :
     astem_replicate = settings['rep']
     #STEM probe parameters, V0(kv), Cs3(mm), Cs5(mm), df(Angstroms), apert1,2(mrad):
@@ -37,15 +38,15 @@ def runHAADF(settings):
     #Number of thickness levels to save, including the end(>=1):
     astem_numthicks = '1'
     #File name prefix to get output of STEM multislice result (no extension):
-    astem_stemfname = file_dir + 'HAADF_' + fname_base
+    astem_stemfname = file_dir + 'HAADF_' + xyz_fname
     #Number of detector geometries (>=1):
     astem_numdet = '1'
     #Detector 1, type: min max angles(mrad) or radius(Ang.) followed by m or A
     astem_detang0 = settings['ADF_in_out'] + ' m'
     #xi,xf,yi,yf, nxout,nyout :
-    astem_scan =  '0 12.547318  0 21.732593 64 64'  # in [Ang, Ang, Ang, Ang, px, px] 
+    astem_scan =  settings['STEM_Scan'] 
     #Slice thickness (in Angstroms):
-    astem_slice = '2'
+    astem_slice = '1'
     #Do you want to include thermal vibrations (y/n) :
     astem_phonon = 'y'
     #Type the temperature in degrees K:
@@ -63,20 +64,20 @@ def runHAADF(settings):
 
     print('========== Running AUTOSTEM Simulation ==========')
 
-    os.system(autostem + ' ' + fname_base +  ' < ' + astem_params + ' > '+ astem_params+'.out' )
+    os.system(autostem + ' ' + xyz_fname +  ' < ' + astem_params + ' > '+ astem_params+'.out' )
 
 def runSAED(settings):
     temsim_dir   = settings['temsim_dir']
     project_dir  = settings['project_dir']
     xyz_dir      = settings['xyz_dir']
-    fname_base   = settings['fname_base']
+    xyz_fname   = settings['xyz_fname']
 
 
-    file_dir = project_dir + fname_base + '/SAED/'
-    aslic_params = file_dir + 'aslic_params_' + fname_base
-    image_params = file_dir + 'image_params_' + fname_base
-    aslic_output = file_dir + 'aslic_out_' + fname_base + '.tif'
-    image_output = file_dir + 'image_out_' + fname_base + '.tif'
+    file_dir = project_dir + xyz_fname + '/SAED/'
+    aslic_params = file_dir + 'aslic_params_' + xyz_fname
+    image_params = file_dir + 'image_params_' + xyz_fname
+    aslic_output = file_dir + 'aslic_out_' + xyz_fname + '.tif'
+    image_output = file_dir + 'image_out_' + xyz_fname + '.tif'
     autoslice = temsim_dir + './autoslic'
     image =     temsim_dir + './image'
 
@@ -85,7 +86,7 @@ def runSAED(settings):
 
     #Parameter for autoslic
     # Name of file with input atomic coord. in x,y,z format:
-    xyz = xyz_dir + fname_base + '.xyz'
+    xyz = xyz_dir + xyz_fname + '.xyz'
     #Replicate unit cell by NCELLX,NCELLY,NCELLZ :
     rep = settings['rep']
     #Name of file to get binary aslic_output of multislice result:
@@ -157,6 +158,27 @@ def makePath(directory) :
     if not os.path.exists(directory) :
         os.makedirs(directory)
 
+def csv2Setting(csvPath) :
+    csvPath = 'setting.csv'
+    with open(csvPath, mode='r') as csv_file:
+        reader = csv.DictReader(csv_file)
+        for row in reader:
+            settings = {
+                'mode'          : str(row['Mode']),
+                'voltage'       : str(row['Voltage (in keV)']),
+                'temp'          : str(row['Temperature (in K)']),
+                'num_config'    : str(row['# of Phonon Configuration']),
+                'rep'           : str(row['Unit Cell Repetition (nx)']) + ' ' + str(row['Unit Cell Repetition (ny)']) + ' ' + str(row['Unit Cell Repetition (nz)']),
+                'convergence'   : str(row['Convergence Angle (in mrad)']),
+                'ADF_in_out'    : str(row['ADF Inner Angle (in mrad)']) + ' ' + str(row['ADF Outer Angle (in mrad)']),
+                'STEM_Scan'     : str(row['STEM Scan xi (Ang)']) + ' ' + str(row['STEM Scan xf (Ang)']) + ' ' + str(row['STEM Scan yi (Ang)']) + ' ' + str(row['STEM Scan yf (Ang)']) + ' ' + str(row['STEM Scan Nx (px)']) + ' ' + str(row['Stem Scan Ny (px)']),
+                'temsim_dir'    : '/Users/sukhyun/Documents/temsim/',
+                'project_dir'   : '/Users/sukhyun/Documents/TaS2_PLD/',
+                'xyz_dir'       : '/Users/sukhyun/Documents/xyz/',
+                'xyz_fname'    : 'TaS2_PLD_SuperCell_A1_0.00_A2_0.00'
+            }
+    return settings
+
 def run(settings) :
     mode = settings['mode']
     if mode == 'SAED' :
@@ -164,19 +186,11 @@ def run(settings) :
     elif mode == 'HAADF' :
         runHAADF(settings)
 
+settings = csv2Setting('setting.csv');
 
-settings = {
-    'mode'          : 'HAADF', #SAED, HAADF
-    'voltage'       : '100',    #keV
-    'temp'          : '0', #Kelvin
-    'num_config'    : '1',  #Number of Configurations to average over
-    'rep'           : '1 1 1', # Unit Cell replication
-    'convergence'   : '20',   #mrad
-    'ADF_in_out'    : '60 200', # HAADF Detector angle in mrad
-    'temsim_dir'    : '/Users/sukhyun/Documents/temsim/',
-    'project_dir'   : '/Users/sukhyun/Documents/TaS2_PLD/',
-    'xyz_dir'       : '/Users/sukhyun/Documents/xyz/',
-    'fname_base'    : 'TaS2_PLD_SuperCell_A1_0.00_A2_0.00'
-}
-
-run(settings)
+for A1 in range(-2,3) :
+    for A2 in range(-2,3) :
+        fname = 'TaS2_PLD_SuperCell_A1_' + '{:1.2f}'.format(A1/10) + '_A2_' + '{:1.2f}'.format(A2/10)
+        settings['xyz_fname'] = fname
+        print(fname)
+        run(settings)
