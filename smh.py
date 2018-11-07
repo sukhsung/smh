@@ -1,7 +1,7 @@
 import os 
 import csv
 
-def runHAADF(settings):
+def runHAADF(settings, **kwargs):
     temsim_dir   = settings['temsim_dir']
     project_dir  = settings['project_dir']
     xyz_dir      = settings['xyz_dir']
@@ -12,6 +12,8 @@ def runHAADF(settings):
     astem_params = file_dir + 'astem_params_' + xyz_fname
     astem_output = file_dir + 'astem_out_' + xyz_fname + '.tif'
     autostem     = temsim_dir + './autostem'
+    if kwargs.get(cuda_mode) == 'cuda':
+        autostem = autostem+'_cuda'
 
     makePath(project_dir)
     makePath(file_dir)
@@ -67,6 +69,8 @@ def runHAADF(settings):
     os.system(autostem + ' ' + xyz_fname +  ' < ' + astem_params + ' > '+ astem_params+'.out' )
 
 def runSAED(settings):
+
+
     temsim_dir   = settings['temsim_dir']
     project_dir  = settings['project_dir']
     xyz_dir      = settings['xyz_dir']
@@ -185,6 +189,8 @@ def run(settings) :
         runSAED(settings)
     elif mode == 'HAADF' :
         runHAADF(settings)
+    elif mode == 'HAADF_CUDA' :
+        runHAADF(settings, mode = 'cuda')
 
 settings = csv2Setting('setting.csv');
 
